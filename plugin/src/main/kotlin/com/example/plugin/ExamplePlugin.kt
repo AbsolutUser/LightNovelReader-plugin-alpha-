@@ -36,7 +36,7 @@ class ExamplePlugin(
     val userDataRepositoryApi: UserDataRepositoryApi
 ) : LightNovelReaderPlugin {
     override fun onLoad() {
-        Log.i("Plugin", "Ciallo～(∠・ω< )⌒★")
+        Log.i("Plugin", "Meionovels plugin loaded")
     }
 
     @Composable
@@ -51,17 +51,17 @@ class ExamplePlugin(
             val checked by userDataRepositoryApi.booleanUserData("TestBooleanUserData").getFlowWithDefault(true).collectAsState(true)
             SettingsSwitchEntry(
                 modifier = Modifier.background(colorScheme.surfaceContainer),
-                title = "测试选项",
-                description = "Ciallo～(∠・ω< )⌒★",
+                title = "Test Option",
+                description = "Toggle example option",
                 checked = checked,
                 booleanUserData = userDataRepositoryApi.booleanUserData("TestBooleanUserData")
             )
             SettingsClickableEntry(
                 modifier = Modifier.background(colorScheme.surfaceContainer),
-                title = "测试点击",
-                description = "0721",
+                title = "Test Click",
+                description = "Example action",
                 onClick = {
-                    Toast.makeText(content, "带面纸了吗", Toast.LENGTH_LONG).show()
+                    Toast.makeText(content, "Clicked", Toast.LENGTH_LONG).show()
                 }
             )
         }
