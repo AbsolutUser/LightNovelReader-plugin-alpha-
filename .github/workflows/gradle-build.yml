@@ -1,4 +1,4 @@
-name: Build Plugin (no-cache)
+name: Build Plugin (fallback)
 
 on:
   push:
@@ -8,6 +8,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      GRADLE_USER_HOME: ${{ runner.temp }}/.gradle
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -18,14 +20,29 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Install Gradle (no cache)
-        uses: gradle/gradle-build-action@v2
-        with:
-          gradle-version: '8.13'
-          cache: false
+      - name: Prepare Gradle wrapper distribution fallback
+        run: |
+          # Try to download from official distribution server; if fails, try a simple curl from repo gradle releases (best-effort)
+          set -e
+          DIST_URL="https://services.gradle.org/distributions/gradle-8.13-bin.zip"
+          TMPZIP="${{ runner.temp }}/gradle-8.13-bin.zip"
+          echo "Downloading Gradle distribution..."
+          if ! curl -fsSL --retry 3 --retry-delay 5 -o "$TMPZIP" "$DIST_URL"; then
+            echo "Primary download failed; trying GitHub releases mirror..."
+            curl -fsSL --retry 3 -o "$TMPZIP" "https://downloads.gradle-dn.com/distributions/gradle-8.13-bin.zip" || true
+          fi
+          if [ -f "$TMPZIP" ]; then
+            mkdir -p $GRADLE_USER_HOME/wrapper/dists
+            unzip -q "$TMPZIP" -d $GRADLE_USER_HOME/wrapper/dists/
+          else
+            echo "WARNING: Could not pre-download gradle distribution; will fallback to wrapper (may still fail)."
+          fi
 
-      - name: Build plugin
-        run: gradle :plugin:assemble --no-daemon
+      - name: Ensure gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Build (assemble)
+        run: ./gradlew :plugin:assemble --no-daemon
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
