@@ -24,7 +24,7 @@ class ExampleWebDataSource : WebBookDataSource {
 
     private val base = "https://meionovels.com"
 
-    // caches keyed by String (bookId/chapterId are Strings per API)
+    // caches keyed by String (API expects String ids)
     private val bookUrlMap = mutableMapOf<String, String>()
     private val chapterUrlMap = mutableMapOf<String, String>()
     private val bookChaptersMap = mutableMapOf<String, List<String>>()
@@ -65,23 +65,17 @@ class ExampleWebDataSource : WebBookDataSource {
     }
 
     private fun urlToId(url: String): String {
-        // gunakan URL langsung sebagai id sederhana (lebih mudah)
+        // use the URL itself as ID (simple and stable)
         return url
     }
 
-    // ---------- Minimal implementations (return empty objects to satisfy API) ----------
+    // ---------- Minimal implementations (empty objects to satisfy API) ----------
 
     override suspend fun getBookInformation(id: String): BookInformation {
         val bookUrl = cacheMutex.withLock { bookUrlMap[id] } ?: return BookInformation.Companion.empty()
+        // parse if needed (we keep minimal for now)
         val doc = fetchDoc(bookUrl)
-
-        val title = doc.selectFirst("h1.entry-title")?.text()?.trim() ?: doc.title()
-        val cover = doc.selectFirst(".post-thumbnail img, .entry-content img")?.absUrl("src") ?: ""
-        val author = doc.selectFirst(".author, .entry-meta a[rel=author]")?.text() ?: ""
-        val description = doc.selectFirst(".entry-content > p")?.text() ?: doc.selectFirst(".entry-summary")?.text() ?: ""
-
-        // Untuk sementara gunakan BookInformation.empty() agar kompilasi berhasil.
-        // Nanti kita akan mengganti ini dengan cara membuat BookInformation yang valid.
+        // TODO: build real BookInformation using API's builder / factory
         return BookInformation.Companion.empty()
     }
 
@@ -89,7 +83,7 @@ class ExampleWebDataSource : WebBookDataSource {
         val bookUrl = cacheMutex.withLock { bookUrlMap[id] } ?: return BookVolumes.Companion.empty()
         val doc = fetchDoc(bookUrl)
 
-        // parse minimal untuk mengisi cache chapter URL list
+        // Try to collect chapter URLs and cache them
         val elems = doc.select(".entry-content a[href*=\"chapter\"], .chapter-list a, .post a[href*=\"/chapter\"]")
         val chapters = mutableListOf<Pair<String, String>>()
         for (el in elems) {
@@ -117,7 +111,7 @@ class ExampleWebDataSource : WebBookDataSource {
             bookChaptersMap[id] = chapterIds
         }
 
-        // Untuk sementara return empty BookVolumes agar kompilasi bersih
+        // return empty BookVolumes for now to ensure compilation
         return BookVolumes.Companion.empty()
     }
 
@@ -129,7 +123,7 @@ class ExampleWebDataSource : WebBookDataSource {
         val paragraphs = contentEl.select("p").map { it.text().trim() }.filter { it.isNotBlank() }
         val contentText = paragraphs.joinToString("\n\n")
 
-        // sementara kembalikan empty object
+        // TODO: build real ChapterContent object using API; return empty for now
         return ChapterContent.Companion.empty()
     }
 
@@ -146,15 +140,14 @@ class ExampleWebDataSource : WebBookDataSource {
             if (href.isNotBlank()) {
                 val bid = urlToId(href)
                 cacheMutex.withLock { bookUrlMap[bid] = href }
-                // untuk sementara kita tidak membuat BookInformation nyata
+                // add empty BookInformation for now
                 results.add(BookInformation.Companion.empty())
             }
         }
-        // kirim hasil (bisa jadi kosong)
         emit(results)
     }
 
     override fun stopAllSearch() {
-        // kosong untuk saat ini
+        // no-op for now
     }
 }
