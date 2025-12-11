@@ -25,10 +25,10 @@ import io.nightfish.lightnovelreader.api.userdata.UserDataRepositoryApi
 @Suppress("unused")
 @Plugin(
     version = 1,
-    name = "example",
+    name = "MeioNovels",
     versionName = "0.0.1",
-    author = "none",
-    description = " a example plugin",
+    author = "Absolut_User",
+    description = "Test Plugin",
     updateUrl = "https://v6.gh-proxy.com/https://github.com/dmzz-yyhyy/LightNovelReader-PluginRepository/blob/main/data/com.example.plugin/"
 )
 class ExamplePlugin(
