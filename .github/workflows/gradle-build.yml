@@ -1,4 +1,4 @@
-name: Build Plugin (Gradle - no cache)
+name: Build Plugin (Gradle - upload outputs)
 
 on:
   push:
@@ -18,7 +18,6 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      # Install Gradle without using cache
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
         with:
@@ -28,10 +27,34 @@ jobs:
       - name: Build plugin (assemble)
         run: gradle :plugin:assemble --no-daemon
 
-      - name: Upload artifacts
+      # DEBUG: list build outputs so we can see produced files
+      - name: List plugin build folder (tree)
+        run: |
+          echo "=== plugin/build top-level ==="
+          ls -la plugin/build || true
+          echo "=== plugin/build/outputs recursive ==="
+          if [ -d plugin/build/outputs ]; then
+            find plugin/build/outputs -maxdepth 4 -type f -print -exec ls -l {} \;
+          else
+            echo "No outputs directory found"
+          fi
+          echo "=== plugin/build/libs recursive ==="
+          if [ -d plugin/build/libs ]; then
+            find plugin/build/libs -type f -print -exec ls -l {} \;
+          else
+            echo "No libs directory found"
+          fi
+
+      # Upload any likely artifact types: apk.lnrp (custom), apk, aar, jar, plus everything under outputs as fallback
+      - name: Upload artifacts (apk/aar/jar/all outputs)
         uses: actions/upload-artifact@v4
         with:
           name: meionovels-plugin-artifacts
           path: |
+            plugin/build/outputs/**/*.apk.lnrp
+            plugin/build/outputs/**/*.apk
             plugin/build/outputs/**/*.aar
             plugin/build/libs/**/*.jar
+            plugin/build/outputs/**/*
+          if-no-files-found: warn
+          compression-level: 6
