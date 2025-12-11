@@ -25,10 +25,11 @@ import io.nightfish.lightnovelreader.api.userdata.UserDataRepositoryApi
 @Suppress("unused")
 @Plugin(
     version = 1,
-    name = "MeioNovels",
-    versionName = "0.0.1",
-    author = "Absolut_User",
-    description = "Test Plugin",
+    apiVersion = 1,
+    name = "Meionovels",
+    versionName = "0.1.0",
+    author = "Shaif Afriza",
+    description = "Meionovels data source",
     updateUrl = ""
 )
 class ExamplePlugin(
