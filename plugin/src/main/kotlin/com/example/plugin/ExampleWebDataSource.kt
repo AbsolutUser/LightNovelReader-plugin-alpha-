@@ -40,14 +40,15 @@ class ExampleWebDataSource : WebBookDataSource {
 
     // no explore pages (prevents Explore from calling data-providers in many implementations)
     override val explorePageIdList: List<String>
-    get() = listOf(MeionovelsExplorePage.id)
+    get() = listOf("meionovels_explore")
 
 override val explorePageDataSourceMap: Map<String, ExplorePageDataSource>
     get() = mapOf(
-        MeionovelsExplorePage.id to MeionovelsExplorePage
+        "meionovels_explore" to MeionovelsExplorePage
     )
-    override val exploreExpandedPageDataSourceMap: Map<String, ExploreExpandedPageDataSource>
-        get() = emptyMap()
+
+override val exploreExpandedPageDataSourceMap: Map<String, ExploreExpandedPageDataSource>
+    get() = emptyMap()
 
     // search types - keep minimal
     override val searchTypeMap: Map<String, String>
