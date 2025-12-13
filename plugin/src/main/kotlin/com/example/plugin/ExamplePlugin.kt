@@ -35,20 +35,26 @@ import io.nightfish.lightnovelreader.api.userdata.UserDataRepositoryApi
 class ExamplePlugin(
     val userDataRepositoryApi: UserDataRepositoryApi
 ) : LightNovelReaderPlugin {
+
     override fun onLoad() {
-        Log.i("Plugin", "Meionovels plugin loaded")
+        Log.i("MeionovelsPlugin", "Plugin loaded successfully")
     }
 
     @Composable
     override fun PageContent(paddingValues: PaddingValues) {
-        val content = LocalContext.current
+        val context = LocalContext.current
+
         Column(
             modifier = Modifier
                 .padding(paddingValues)
                 .clip(RoundedCornerShape(16.dp)),
-            verticalArrangement = Arrangement.spacedBy(2.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            val checked by userDataRepositoryApi.booleanUserData("TestBooleanUserData").getFlowWithDefault(true).collectAsState(true)
+            val checked by userDataRepositoryApi
+                .booleanUserData("TestBooleanUserData")
+                .getFlowWithDefault(true)
+                .collectAsState(true)
+
             SettingsSwitchEntry(
                 modifier = Modifier.background(colorScheme.surfaceContainer),
                 title = "Test Option",
@@ -56,12 +62,13 @@ class ExamplePlugin(
                 checked = checked,
                 booleanUserData = userDataRepositoryApi.booleanUserData("TestBooleanUserData")
             )
+
             SettingsClickableEntry(
                 modifier = Modifier.background(colorScheme.surfaceContainer),
                 title = "Test Click",
                 description = "Example action",
                 onClick = {
-                    Toast.makeText(content, "Clicked", Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, "Clicked", Toast.LENGTH_LONG).show()
                 }
             )
         }
