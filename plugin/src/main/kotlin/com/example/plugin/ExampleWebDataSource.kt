@@ -22,8 +22,13 @@ class ExampleWebDataSource : WebBookDataSource {
     override val isOffLineFlow: Flow<Boolean> = flowOf(true)
 
     // 🔥 INI YANG MENCEGAH FORCE CLOSE
-    override val explorePageIdList: List<String> = emptyList()
-    override val explorePageDataSourceMap: Map<String, ExplorePageDataSource> = emptyMap()
+    override val explorePageIdList: List<String>
+    get() = listOf("meionovels_home")
+
+override val explorePageDataSourceMap: Map<String, ExplorePageDataSource>
+    get() = mapOf(
+        "meionovels_home" to MeionovelsExplorePage
+    )
     override val exploreExpandedPageDataSourceMap: Map<String, ExploreExpandedPageDataSource> = emptyMap()
 
     override val searchTypeMap: Map<String, String> = mapOf("all" to "All")
