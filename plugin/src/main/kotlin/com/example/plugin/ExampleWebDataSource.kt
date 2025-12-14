@@ -27,7 +27,7 @@ class ExampleWebDataSource : WebBookDataSource {
 
 override val explorePageDataSourceMap: Map<String, ExplorePageDataSource>
     get() = mapOf(
-        "meionovels_home" to MeionovelsExplorePage
+        "meionovels_home"
     )
     override val exploreExpandedPageDataSourceMap: Map<String, ExploreExpandedPageDataSource> = emptyMap()
 
