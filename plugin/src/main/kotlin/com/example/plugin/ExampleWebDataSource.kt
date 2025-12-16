@@ -5,8 +5,6 @@ import io.nightfish.lightnovelreader.api.book.BookVolumes
 import io.nightfish.lightnovelreader.api.book.ChapterContent
 import io.nightfish.lightnovelreader.api.web.WebBookDataSource
 import io.nightfish.lightnovelreader.api.web.WebDataSource
-import io.nightfish.lightnovelreader.api.web.explore.ExploreExpandedPageDataSource
-import io.nightfish.lightnovelreader.api.web.explore.ExplorePageDataSource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 
@@ -21,38 +19,33 @@ class ExampleWebDataSource : WebBookDataSource {
     override val offLine: Boolean = true
     override val isOffLineFlow: Flow<Boolean> = flowOf(true)
 
-    // 🔥 INI YANG MENCEGAH FORCE CLOSE
-    override val explorePageIdList: List<String>
-    get() = listOf("meionovels_home")
+    // ❗ WAJIB TIDAK KOSONG (API BUG WORKAROUND)
+    override val explorePageIdList: List<String> =
+        listOf("placeholder")
 
-override val explorePageDataSourceMap: Map<String, ExplorePageDataSource>
-    get() = mapOf(
-        "meionovels_home" to MeionovelsExplorePage
-    )
-    override val exploreExpandedPageDataSourceMap: Map<String, ExploreExpandedPageDataSource> = emptyMap()
+    // ❗ MAP BOLEH KOSONG — APP TIDAK AKSES JIKA OFFLINE
+    override val explorePageDataSourceMap =
+        emptyMap<String, Nothing>()
 
-    override val searchTypeMap: Map<String, String> = mapOf("all" to "All")
-    override val searchTipMap: Map<String, String> = mapOf("all" to "Search disabled")
-    override val searchTypeIdList: List<String> = listOf("all")
+    override val exploreExpandedPageDataSourceMap =
+        emptyMap<String, Nothing>()
+
+    override val searchTypeMap = emptyMap<String, String>()
+    override val searchTipMap = emptyMap<String, String>()
+    override val searchTypeIdList = emptyList<String>()
 
     override suspend fun isOffLine(): Boolean = true
 
-    override suspend fun getBookInformation(id: String): BookInformation =
+    override suspend fun getBookInformation(id: String) =
         BookInformation.empty()
 
-    override suspend fun getBookVolumes(id: String): BookVolumes =
+    override suspend fun getBookVolumes(id: String) =
         BookVolumes.empty()
 
-    override suspend fun getChapterContent(
-        chapterId: String,
-        bookId: String
-    ): ChapterContent =
+    override suspend fun getChapterContent(chapterId: String, bookId: String) =
         ChapterContent.empty()
 
-    override fun search(
-        searchType: String,
-        keyword: String
-    ): Flow<List<BookInformation>> =
+    override fun search(searchType: String, keyword: String) =
         flowOf(listOf(BookInformation.empty()))
 
     override fun stopAllSearch() {}
