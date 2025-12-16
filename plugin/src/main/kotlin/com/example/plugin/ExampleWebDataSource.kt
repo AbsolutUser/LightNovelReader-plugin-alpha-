@@ -16,8 +16,8 @@ class ExampleWebDataSource : WebBookDataSource {
 
     override val id: Int = "meionovels".hashCode()
 
-    override val offLine: Boolean = true
-    override val isOffLineFlow: Flow<Boolean> = flowOf(true)
+    override val offLine: Boolean = false
+    override val isOffLineFlow: Flow<Boolean> = flowOf(false)
 
     // ❗ WAJIB TIDAK KOSONG (API BUG WORKAROUND)
     override val explorePageIdList: List<String> =
