@@ -34,7 +34,7 @@ class ExampleWebDataSource : WebBookDataSource {
     override val searchTipMap = emptyMap<String, String>()
     override val searchTypeIdList = emptyList<String>()
 
-    override suspend fun isOffLine(): Boolean = true
+    override suspend fun isOffLine(): Boolean = false
 
     override suspend fun getBookInformation(id: String) =
         BookInformation.empty()
