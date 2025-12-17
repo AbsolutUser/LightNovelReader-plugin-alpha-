@@ -20,27 +20,35 @@ class ExampleWebDataSource : WebBookDataSource {
 
     override val offLine: Boolean = false
     override val isOffLineFlow: Flow<Boolean> = flowOf(false)
+
     override suspend fun isOffLine(): Boolean = false
 
-    // Explore dimatikan (API bug jika kosong)
-    override val explorePageIdList: List<String> = listOf("dummy")
+    // ⚠️ API BUG WORKAROUND: tidak boleh kosong
+    override val explorePageIdList: List<String> =
+        listOf("placeholder")
 
     override val explorePageDataSourceMap:
-        Map<String, ExplorePageDataSource> = emptyMap()
+        Map<String, ExplorePageDataSource> =
+        emptyMap()
 
     override val exploreExpandedPageDataSourceMap:
-        Map<String, ExploreExpandedPageDataSource> = emptyMap()
+        Map<String, ExploreExpandedPageDataSource> =
+        emptyMap()
 
-    override val searchTypeMap = mapOf("default" to "Search")
-    override val searchTipMap = mapOf("default" to "Search Meionovels")
-    override val searchTypeIdList = listOf("default")
+    override val searchTypeMap: Map<String, String> =
+        mapOf("default" to "Search")
+
+    override val searchTipMap: Map<String, String> =
+        mapOf("default" to "Search Meionovels")
+
+    override val searchTypeIdList: List<String> =
+        listOf("default")
 
     override fun search(
         searchType: String,
         keyword: String
     ): Flow<List<BookInformation>> {
-        // ❗ API SAAT INI TIDAK MENGIZINKAN MEMBUAT BOOK NON-EMPTY
-        // Maka kita KEMBALIKAN 1 empty() agar tidak crash
+        // API belum menyediakan builder → return empty aman
         return flowOf(
             listOf(BookInformation.empty())
         )
@@ -58,8 +66,7 @@ class ExampleWebDataSource : WebBookDataSource {
     ): ChapterContent =
         ChapterContent.empty()
 
-    override fun stopAllSearch() {}
-}    override fun stopAllSearch() {}
-}
-    override fun stopAllSearch() {}
+    override fun stopAllSearch() {
+        // no-op
+    }
 }
