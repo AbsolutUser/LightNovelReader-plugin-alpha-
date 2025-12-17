@@ -5,6 +5,8 @@ import io.nightfish.lightnovelreader.api.book.BookVolumes
 import io.nightfish.lightnovelreader.api.book.ChapterContent
 import io.nightfish.lightnovelreader.api.web.WebBookDataSource
 import io.nightfish.lightnovelreader.api.web.WebDataSource
+import io.nightfish.lightnovelreader.api.web.explore.ExploreExpandedPageDataSource
+import io.nightfish.lightnovelreader.api.web.explore.ExplorePageDataSource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
@@ -19,23 +21,33 @@ class ExampleWebDataSource : WebBookDataSource {
 
     override val id: Int = "meionovels".hashCode()
 
-    // SOURCE ONLINE
+    // =========================
+    // ONLINE STATUS
+    // =========================
     override val offLine: Boolean = false
     override val isOffLineFlow: Flow<Boolean> = flowOf(false)
     override suspend fun isOffLine(): Boolean = false
 
-    // 🚫 EXPLORE TIDAK DIGUNAKAN
+    // =========================
+    // EXPLORE (DISABLED SAFELY)
+    // =========================
     override val explorePageIdList: List<String> = emptyList()
-    override val explorePageDataSourceMap = emptyMap<String, Any>()
-    override val exploreExpandedPageDataSourceMap = emptyMap<String, Any>()
 
-    // 🔍 SEARCH CONFIG
+    override val explorePageDataSourceMap:
+        Map<String, ExplorePageDataSource> = emptyMap()
+
+    override val exploreExpandedPageDataSourceMap:
+        Map<String, ExploreExpandedPageDataSource> = emptyMap()
+
+    // =========================
+    // SEARCH CONFIG
+    // =========================
     override val searchTypeMap = mapOf("default" to "Search")
     override val searchTipMap = mapOf("default" to "Search Meionovels")
     override val searchTypeIdList = listOf("default")
 
     // =========================
-    // 🔍 SEARCH IMPLEMENTATION
+    // SEARCH IMPLEMENTATION
     // =========================
     override fun search(
         searchType: String,
@@ -52,7 +64,6 @@ class ExampleWebDataSource : WebBookDataSource {
 
         val result = mutableListOf<BookInformation>()
 
-        // Meionovels search result selector
         val items = doc.select("h2.entry-title a")
 
         for (el in items) {
@@ -61,17 +72,18 @@ class ExampleWebDataSource : WebBookDataSource {
 
             if (title.isBlank() || link.isBlank()) continue
 
-            val book = BookInformation.empty()
-            book.id = link          // ID boleh URL
-            book.title = title
-            book.cover = ""         // nanti isi
-            book.author = ""
-            book.description = ""
+            val book = BookInformation.build {
+                id = link
+                this.title = title
+                cover = ""
+                author = ""
+                description = ""
+            }
 
             result.add(book)
         }
 
-        // ❗ WAJIB ADA ISI → JANGAN EMIT LIST KOSONG
+        // ❗ API BUG WORKAROUND
         if (result.isEmpty()) {
             result.add(BookInformation.empty())
         }
@@ -80,22 +92,19 @@ class ExampleWebDataSource : WebBookDataSource {
     }
 
     // =========================
-    // ❌ BELUM DIPAKAI
+    // NOT IMPLEMENTED YET
     // =========================
-    override suspend fun getBookInformation(id: String): BookInformation {
-        return BookInformation.empty()
-    }
+    override suspend fun getBookInformation(id: String): BookInformation =
+        BookInformation.empty()
 
-    override suspend fun getBookVolumes(id: String): BookVolumes {
-        return BookVolumes.empty()
-    }
+    override suspend fun getBookVolumes(id: String): BookVolumes =
+        BookVolumes.empty()
 
     override suspend fun getChapterContent(
         chapterId: String,
         bookId: String
-    ): ChapterContent {
-        return ChapterContent.empty()
-    }
+    ): ChapterContent =
+        ChapterContent.empty()
 
     override fun stopAllSearch() {}
 }
