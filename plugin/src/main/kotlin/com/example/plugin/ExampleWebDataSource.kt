@@ -5,8 +5,6 @@ import io.nightfish.lightnovelreader.api.book.BookVolumes
 import io.nightfish.lightnovelreader.api.book.ChapterContent
 import io.nightfish.lightnovelreader.api.web.WebBookDataSource
 import io.nightfish.lightnovelreader.api.web.WebDataSource
-import io.nightfish.lightnovelreader.api.web.explore.ExplorePageDataSource
-import io.nightfish.lightnovelreader.api.web.explore.model.ExplorePage
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 
@@ -18,68 +16,49 @@ class ExampleWebDataSource : WebBookDataSource {
 
     override val id: Int = "meionovels".hashCode()
 
-    // 🔑 SEMUA KONSISTEN: ONLINE
+    // 🔑 SEMUA KONSISTEN ONLINE
     override val offLine: Boolean = false
     override val isOffLineFlow: Flow<Boolean> = flowOf(false)
     override suspend fun isOffLine(): Boolean = false
 
-    // 🔑 WAJIB ADA & HARUS ADA DATASOURCE-NYA
+    // 🔑 API BUG WORKAROUND — TIDAK BOLEH EMPTY
     override val explorePageIdList: List<String> =
-        listOf("meionovels_home")
+        listOf("search")
 
-    override val explorePageDataSourceMap: Map<String, ExplorePageDataSource> =
-        mapOf(
-            "meionovels_home" to object : ExplorePageDataSource {
-                override val title: String = "Meionovels"
+    // 🔑 JANGAN IMPLEMENT EXPLORE DI PLUGIN
+    override val explorePageDataSourceMap =
+        emptyMap<String, Nothing>()
 
-                override fun getExplorePage(): ExplorePage {
-                    // 🔑 TIDAK BOLEH EMPTY LIST
-                    return ExplorePage(
-                        sections = listOf(
-                            ExplorePage.Section(
-                                title = "Placeholder",
-                                books = listOf(
-                                    BookInformation(
-                                        id = "dummy",
-                                        title = "Dummy Novel (API OK)",
-                                        author = "System",
-                                        cover = "",
-                                        description = "This confirms Explore works"
-                                    )
-                                )
-                            )
-                        )
-                    )
-                }
-            }
-        )
+    override val exploreExpandedPageDataSourceMap =
+        emptyMap<String, Nothing>()
 
-    override val exploreExpandedPageDataSourceMap = emptyMap<String, Nothing>()
+    // --- SEARCH CONFIG ---
+    override val searchTypeMap: Map<String, String> =
+        mapOf("all" to "All")
 
-    // --- SEARCH ---
-    override val searchTypeMap = mapOf("all" to "All")
-    override val searchTipMap = mapOf("all" to "Test search")
-    override val searchTypeIdList = listOf("all")
+    override val searchTipMap: Map<String, String> =
+        mapOf("all" to "Search Meionovels")
 
+    override val searchTypeIdList: List<String> =
+        listOf("all")
+
+    // 🔥 SEARCH PIPELINE (WAJIB ADA ITEM NON-END)
     override fun search(
         searchType: String,
         keyword: String
     ): Flow<List<BookInformation>> {
         return flowOf(
             listOf(
-                BookInformation(
-                    id = "search_dummy",
-                    title = "Search Result OK",
-                    author = "System",
-                    cover = "",
-                    description = "Search pipeline works"
-                ),
-                BookInformation.empty() // end marker
+                // ❗ DUMMY ITEM → MENCEGAH CRASH & LOADING LOOP
+                BookInformation.empty(),
+
+                // ❗ END MARKER
+                BookInformation.empty()
             )
         )
     }
 
-    // --- SAFE STUBS ---
+    // --- STUBS ---
     override suspend fun getBookInformation(id: String) =
         BookInformation.empty()
 
