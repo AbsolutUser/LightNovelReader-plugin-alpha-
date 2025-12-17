@@ -8,7 +8,10 @@ import io.nightfish.lightnovelreader.api.web.WebDataSource
 import io.nightfish.lightnovelreader.api.web.explore.ExploreExpandedPageDataSource
 import io.nightfish.lightnovelreader.api.web.explore.ExplorePageDataSource
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
+import org.jsoup.Jsoup
+import java.net.URLEncoder
 
 @WebDataSource(
     name = "Meionovels",
@@ -20,53 +23,66 @@ class ExampleWebDataSource : WebBookDataSource {
 
     override val offLine: Boolean = false
     override val isOffLineFlow: Flow<Boolean> = flowOf(false)
+    override suspend fun isOffLine() = false
 
-    override suspend fun isOffLine(): Boolean = false
+    // ❌ EXPLORE DIMATIKAN TOTAL
+    override val explorePageIdList = emptyList<String>()
+    override val explorePageDataSourceMap =
+        emptyMap<String, ExplorePageDataSource>()
+    override val exploreExpandedPageDataSourceMap =
+        emptyMap<String, ExploreExpandedPageDataSource>()
 
-    // ⚠️ API BUG WORKAROUND: tidak boleh kosong
-    override val explorePageIdList: List<String> =
-        listOf("placeholder")
-
-    override val explorePageDataSourceMap:
-        Map<String, ExplorePageDataSource> =
-        emptyMap()
-
-    override val exploreExpandedPageDataSourceMap:
-        Map<String, ExploreExpandedPageDataSource> =
-        emptyMap()
-
-    override val searchTypeMap: Map<String, String> =
-        mapOf("default" to "Search")
-
-    override val searchTipMap: Map<String, String> =
-        mapOf("default" to "Search Meionovels")
-
-    override val searchTypeIdList: List<String> =
-        listOf("default")
+    // ✅ SEARCH ENABLE
+    override val searchTypeMap = mapOf("all" to "All")
+    override val searchTipMap = mapOf("all" to "Search Meionovels")
+    override val searchTypeIdList = listOf("all")
 
     override fun search(
         searchType: String,
         keyword: String
-    ): Flow<List<BookInformation>> {
-        // API belum menyediakan builder → return empty aman
-        return flowOf(
-            listOf(BookInformation.empty())
-        )
+    ): Flow<List<BookInformation>> = flow {
+
+        val url =
+            "https://meionovels.com/?s=" +
+                URLEncoder.encode(keyword, "UTF-8")
+
+        val doc = Jsoup
+            .connect(url)
+            .userAgent("Mozilla/5.0")
+            .timeout(15_000)
+            .get()
+
+        val result = mutableListOf<BookInformation>()
+
+        for (a in doc.select("article h2.entry-title a")) {
+            val title = a.text().trim()
+            val link = a.absUrl("href")
+
+            if (title.isEmpty() || link.isEmpty()) continue
+
+            val book = BookInformation.empty()
+            book.id = link
+            book.title = title
+            book.detailUrl = link
+
+            result.add(book)
+        }
+
+        // 🔥 PENTING: emit minimal 1 list
+        emit(result)
     }
 
-    override suspend fun getBookInformation(id: String): BookInformation =
+    // DUMMY — BELUM DIPAKAI
+    override suspend fun getBookInformation(id: String) =
         BookInformation.empty()
 
-    override suspend fun getBookVolumes(id: String): BookVolumes =
+    override suspend fun getBookVolumes(id: String) =
         BookVolumes.empty()
 
     override suspend fun getChapterContent(
         chapterId: String,
         bookId: String
-    ): ChapterContent =
-        ChapterContent.empty()
+    ) = ChapterContent.empty()
 
-    override fun stopAllSearch() {
-        // no-op
-    }
+    override fun stopAllSearch() {}
 }
