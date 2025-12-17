@@ -21,16 +21,16 @@ class ExampleWebDataSource : WebBookDataSource {
 
     override val id: Int = "meionovels".hashCode()
 
-    // =========================
-    // ONLINE STATUS
-    // =========================
+    // =====================
+    // ONLINE STATE
+    // =====================
     override val offLine: Boolean = false
     override val isOffLineFlow: Flow<Boolean> = flowOf(false)
     override suspend fun isOffLine(): Boolean = false
 
-    // =========================
-    // EXPLORE (DISABLED SAFELY)
-    // =========================
+    // =====================
+    // EXPLORE (DIMATIKAN DULU)
+    // =====================
     override val explorePageIdList: List<String> = emptyList()
 
     override val explorePageDataSourceMap:
@@ -39,16 +39,16 @@ class ExampleWebDataSource : WebBookDataSource {
     override val exploreExpandedPageDataSourceMap:
         Map<String, ExploreExpandedPageDataSource> = emptyMap()
 
-    // =========================
+    // =====================
     // SEARCH CONFIG
-    // =========================
+    // =====================
     override val searchTypeMap = mapOf("default" to "Search")
     override val searchTipMap = mapOf("default" to "Search Meionovels")
     override val searchTypeIdList = listOf("default")
 
-    // =========================
+    // =====================
     // SEARCH IMPLEMENTATION
-    // =========================
+    // =====================
     override fun search(
         searchType: String,
         keyword: String
@@ -69,21 +69,20 @@ class ExampleWebDataSource : WebBookDataSource {
         for (el in items) {
             val title = el.text().trim()
             val link = el.absUrl("href")
-
             if (title.isBlank() || link.isBlank()) continue
 
-            val book = BookInformation.build {
-                id = link
-                this.title = title
-                cover = ""
-                author = ""
+            val book = BookInformation.empty().copyWith(
+                id = link.hashCode(),
+                title = title,
+                cover = "",
+                author = "",
                 description = ""
-            }
+            )
 
             result.add(book)
         }
 
-        // ❗ API BUG WORKAROUND
+        // API BUG: WAJIB ADA 1 ITEM
         if (result.isEmpty()) {
             result.add(BookInformation.empty())
         }
@@ -91,9 +90,9 @@ class ExampleWebDataSource : WebBookDataSource {
         emit(result)
     }
 
-    // =========================
-    // NOT IMPLEMENTED YET
-    // =========================
+    // =====================
+    // BELUM DIIMPLEMENT
+    // =====================
     override suspend fun getBookInformation(id: String): BookInformation =
         BookInformation.empty()
 
@@ -106,5 +105,7 @@ class ExampleWebDataSource : WebBookDataSource {
     ): ChapterContent =
         ChapterContent.empty()
 
+    override fun stopAllSearch() {}
+}
     override fun stopAllSearch() {}
 }
