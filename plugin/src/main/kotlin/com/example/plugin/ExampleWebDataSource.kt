@@ -6,7 +6,10 @@ import io.nightfish.lightnovelreader.api.book.ChapterContent
 import io.nightfish.lightnovelreader.api.web.WebBookDataSource
 import io.nightfish.lightnovelreader.api.web.WebDataSource
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
+import org.jsoup.Jsoup
+import java.net.URLEncoder
 
 @WebDataSource(
     name = "Meionovels",
@@ -16,57 +19,83 @@ class ExampleWebDataSource : WebBookDataSource {
 
     override val id: Int = "meionovels".hashCode()
 
-    // 🔑 SEMUA KONSISTEN ONLINE
+    // SOURCE ONLINE
     override val offLine: Boolean = false
     override val isOffLineFlow: Flow<Boolean> = flowOf(false)
     override suspend fun isOffLine(): Boolean = false
 
-    // 🔑 API BUG WORKAROUND — TIDAK BOLEH EMPTY
-    override val explorePageIdList: List<String> =
-        listOf("search")
+    // 🚫 EXPLORE TIDAK DIGUNAKAN
+    override val explorePageIdList: List<String> = emptyList()
+    override val explorePageDataSourceMap = emptyMap<String, Any>()
+    override val exploreExpandedPageDataSourceMap = emptyMap<String, Any>()
 
-    // 🔑 JANGAN IMPLEMENT EXPLORE DI PLUGIN
-    override val explorePageDataSourceMap =
-        emptyMap<String, Nothing>()
+    // 🔍 SEARCH CONFIG
+    override val searchTypeMap = mapOf("default" to "Search")
+    override val searchTipMap = mapOf("default" to "Search Meionovels")
+    override val searchTypeIdList = listOf("default")
 
-    override val exploreExpandedPageDataSourceMap =
-        emptyMap<String, Nothing>()
-
-    // --- SEARCH CONFIG ---
-    override val searchTypeMap: Map<String, String> =
-        mapOf("all" to "All")
-
-    override val searchTipMap: Map<String, String> =
-        mapOf("all" to "Search Meionovels")
-
-    override val searchTypeIdList: List<String> =
-        listOf("all")
-
-    // 🔥 SEARCH PIPELINE (WAJIB ADA ITEM NON-END)
+    // =========================
+    // 🔍 SEARCH IMPLEMENTATION
+    // =========================
     override fun search(
         searchType: String,
         keyword: String
-    ): Flow<List<BookInformation>> {
-        return flowOf(
-            listOf(
-                // ❗ DUMMY ITEM → MENCEGAH CRASH & LOADING LOOP
-                BookInformation.empty(),
+    ): Flow<List<BookInformation>> = flow {
 
-                // ❗ END MARKER
-                BookInformation.empty()
-            )
-        )
+        val encoded = URLEncoder.encode(keyword, "UTF-8")
+        val url = "https://meionovels.com/?s=$encoded"
+
+        val doc = Jsoup.connect(url)
+            .userAgent("Mozilla/5.0")
+            .timeout(15_000)
+            .get()
+
+        val result = mutableListOf<BookInformation>()
+
+        // Meionovels search result selector
+        val items = doc.select("h2.entry-title a")
+
+        for (el in items) {
+            val title = el.text().trim()
+            val link = el.absUrl("href")
+
+            if (title.isBlank() || link.isBlank()) continue
+
+            val book = BookInformation.empty()
+            book.id = link          // ID boleh URL
+            book.title = title
+            book.cover = ""         // nanti isi
+            book.author = ""
+            book.description = ""
+
+            result.add(book)
+        }
+
+        // ❗ WAJIB ADA ISI → JANGAN EMIT LIST KOSONG
+        if (result.isEmpty()) {
+            result.add(BookInformation.empty())
+        }
+
+        emit(result)
     }
 
-    // --- STUBS ---
-    override suspend fun getBookInformation(id: String) =
-        BookInformation.empty()
+    // =========================
+    // ❌ BELUM DIPAKAI
+    // =========================
+    override suspend fun getBookInformation(id: String): BookInformation {
+        return BookInformation.empty()
+    }
 
-    override suspend fun getBookVolumes(id: String) =
-        BookVolumes.empty()
+    override suspend fun getBookVolumes(id: String): BookVolumes {
+        return BookVolumes.empty()
+    }
 
-    override suspend fun getChapterContent(chapterId: String, bookId: String) =
-        ChapterContent.empty()
+    override suspend fun getChapterContent(
+        chapterId: String,
+        bookId: String
+    ): ChapterContent {
+        return ChapterContent.empty()
+    }
 
     override fun stopAllSearch() {}
 }
