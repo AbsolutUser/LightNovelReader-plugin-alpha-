@@ -21,18 +21,18 @@ class ExampleWebDataSource : WebBookDataSource {
 
     override val id: Int = "meionovels".hashCode()
 
-    override val offLine: Boolean = false
-    override val isOffLineFlow: Flow<Boolean> = flowOf(false)
+    override val offLine = false
+    override val isOffLineFlow = flowOf(false)
     override suspend fun isOffLine() = false
 
-    // ❌ EXPLORE DIMATIKAN TOTAL
+    // 🔴 EXPLORE DIMATIKAN TOTAL
     override val explorePageIdList = emptyList<String>()
     override val explorePageDataSourceMap =
         emptyMap<String, ExplorePageDataSource>()
     override val exploreExpandedPageDataSourceMap =
         emptyMap<String, ExploreExpandedPageDataSource>()
 
-    // ✅ SEARCH ENABLE
+    // ✅ SEARCH AKTIF
     override val searchTypeMap = mapOf("all" to "All")
     override val searchTipMap = mapOf("all" to "Search Meionovels")
     override val searchTypeIdList = listOf("all")
@@ -46,13 +46,12 @@ class ExampleWebDataSource : WebBookDataSource {
             "https://meionovels.com/?s=" +
                 URLEncoder.encode(keyword, "UTF-8")
 
-        val doc = Jsoup
-            .connect(url)
+        val doc = Jsoup.connect(url)
             .userAgent("Mozilla/5.0")
             .timeout(15_000)
             .get()
 
-        val result = mutableListOf<BookInformation>()
+        val list = mutableListOf<BookInformation>()
 
         for (a in doc.select("article h2.entry-title a")) {
             val title = a.text().trim()
@@ -60,19 +59,23 @@ class ExampleWebDataSource : WebBookDataSource {
 
             if (title.isEmpty() || link.isEmpty()) continue
 
-            val book = BookInformation.empty()
-            book.id = link
-            book.title = title
-            book.detailUrl = link
-
-            result.add(book)
+            // 🔴 INI CARA YANG BENAR
+            list.add(
+                BookInformation(
+                    id = link,
+                    title = title,
+                    detailUrl = link,
+                    coverUrl = null,
+                    author = null,
+                    description = null
+                )
+            )
         }
 
-        // 🔥 PENTING: emit minimal 1 list
-        emit(result)
+        emit(list)
     }
 
-    // DUMMY — BELUM DIPAKAI
+    // DUMMY (BELUM DIPAKAI)
     override suspend fun getBookInformation(id: String) =
         BookInformation.empty()
 
