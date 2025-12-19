@@ -3,6 +3,7 @@ package com.example.plugin
 import io.nightfish.lightnovelreader.api.book.BookInformation
 import io.nightfish.lightnovelreader.api.book.BookVolumes
 import io.nightfish.lightnovelreader.api.book.ChapterContent
+import io.nightfish.lightnovelreader.api.book.buildBookInformation
 import io.nightfish.lightnovelreader.api.web.WebBookDataSource
 import io.nightfish.lightnovelreader.api.web.WebDataSource
 import io.nightfish.lightnovelreader.api.web.explore.ExploreExpandedPageDataSource
@@ -59,16 +60,13 @@ class ExampleWebDataSource : WebBookDataSource {
 
             if (title.isEmpty() || link.isEmpty()) continue
 
-            // 🔴 INI CARA YANG BENAR
+            // ✅ SATU-SATUNYA CARA YANG BENAR
             list.add(
-                BookInformation(
-                    id = link,
-                    title = title,
-                    detailUrl = link,
-                    coverUrl = null,
-                    author = null,
-                    description = null
-                )
+                buildBookInformation {
+                    id = link
+                    this.title = title
+                    detailUrl = link
+                }
             )
         }
 
